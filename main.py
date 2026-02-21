@@ -4,6 +4,8 @@ import schedule
 import time
 import requests
 import paho.mqtt.subscribe as subscribe
+from zoneinfo import ZoneInfo      
+from datetime import datetime  
 
 # Set up logging
 logging.basicConfig(
@@ -15,9 +17,9 @@ logger = logging.getLogger("trmnl-teslamate-reporter")
 # Load dev environment variables if available
 try:
     from dotenv import load_dotenv
-    load_dotenv()  # Development mode
+    load_dotenv()
 except ImportError:
-    pass           # Production mode
+    pass
 
 # Get configuration from environment variables
 FETCH_FREQUENCY = int(os.environ.get("FETCH_FREQUENCY", "15"))
@@ -63,12 +65,20 @@ def fetch_data_mqtt():
         import threading
         thread = threading.Thread(target=fetch)
         thread.start()
-        thread.join(timeout=5)  # Wait max 5 seconds per topic
+        thread.join(timeout=5)
         if result[0] is not None:
             key = topic.split("/")[-1]
             results[key] = result[0]
         else:
             logger.warning(f"Timeout or no data for topic {topic}, skipping")
+            
+    if "since" in results:
+        try:
+            utc_time = datetime.fromisoformat(results["since"].replace("Z", "+00:00"))
+            local_time = utc_time.astimezone(ZoneInfo(os.environ.get("TZ", "UTC")))
+            results["since"] = local_time.strftime("%H:%M")
+        except Exception as e:
+            logger.warning(f"Could not convert since timestamp: {e}")
 
     return results
 
@@ -77,11 +87,9 @@ def post_to_webhook(data):
     if not data:
         logger.warning("No data to send")
         return
-
     payload = {
         "merge_variables": data
     }
-
     try:
         logger.debug(f"POSTing payload: {payload}")
         response = requests.post(WEBHOOK_URL, json=payload)
@@ -106,15 +114,11 @@ def start_scheduler():
     """Set up and start the scheduler"""
     logger.info("Starting scheduler")
     schedule.every(FETCH_FREQUENCY).minutes.do(report_data)
-
-    # Run once immediately on startup
     report_data()
-
-    # Keep the script running
     try:
         while True:
             schedule.run_pending()
-            time.sleep(60)  # Check every minute for pending jobs
+            time.sleep(60)
     except KeyboardInterrupt:
         logger.info("Scheduler stopped by user (CTRL+C). Exiting gracefully.")
         exit(0)
@@ -123,6 +127,5 @@ if __name__ == "__main__":
     if not WEBHOOK_URL:
         logger.critical("WEBHOOK_URL environment variable is not set. Exiting.")
         exit(1)
-
     logger.info("Reporter service starting up")
     start_scheduler()
