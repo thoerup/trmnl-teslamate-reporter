@@ -72,13 +72,15 @@ def fetch_data_mqtt():
         else:
             logger.warning(f"Timeout or no data for topic {topic}, skipping")
             
-    if "since" in results:
+if "since" in results:
         try:
             utc_time = datetime.fromisoformat(results["since"].replace("Z", "+00:00"))
             local_time = utc_time.astimezone(ZoneInfo(os.environ.get("TZ", "UTC")))
             results["since"] = local_time.strftime("%H:%M")
         except Exception as e:
             logger.warning(f"Could not convert since timestamp: {e}")
+
+    results["last_updated"] = datetime.now(ZoneInfo(os.environ.get("TZ", "UTC"))).strftime("%H:%M")
 
     return results
 
