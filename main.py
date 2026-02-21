@@ -31,8 +31,6 @@ CAR_ID = int(os.environ.get("CAR_ID", "1"))
 def fetch_data_mqtt():
     """Fetch data from MQTT"""
     results = {}
-
-    # Define topics to fetch
     topics = [
         f"teslamate/cars/{CAR_ID}/state",
         f"teslamate/cars/{CAR_ID}/battery_level",
@@ -46,26 +44,29 @@ def fetch_data_mqtt():
         f"teslamate/cars/{CAR_ID}/outside_temp",
         f"teslamate/cars/{CAR_ID}/climate_on",
     ]
+    auth = None
+    if MQTT_USER and MQTT_PASSWORD:
+        auth = {"username": MQTT_USER, "password": MQTT_PASSWORD}
 
-    try:
-        # Create a minimal client connection
-        auth = None
-        if MQTT_USER and MQTT_PASSWORD:
-            auth = {"username": MQTT_USER, "password": MQTT_PASSWORD}
-
-        # Query each topic for the retained message
-        for topic in topics:
+    for topic in topics:
+        result = [None]
+        def fetch(t=topic, r=result):
             try:
-                msg = subscribe.simple(topic, hostname=MQTT_BROKER, port=MQTT_PORT, auth=auth, keepalive=1)
+                msg = subscribe.simple(t, hostname=MQTT_BROKER, port=MQTT_PORT, auth=auth, keepalive=1)
                 if msg and msg.payload:
-                    # Try to get the topic name without the prefix
-                    key = topic.split("/")[-1]
-                    results[key] = msg.payload.decode().strip()
+                    r[0] = msg.payload.decode().strip()
             except Exception as e:
-                logger.error(f"Could not get MQTT topic {topic}: {e}")
+                logger.error(f"Could not get MQTT topic {t}: {e}")
 
-    except Exception as e:
-        logger.error(f"Error fetching data from MQTT: {e}")
+        import threading
+        thread = threading.Thread(target=fetch)
+        thread.start()
+        thread.join(timeout=5)  # Wait max 5 seconds per topic
+        if result[0] is not None:
+            key = topic.split("/")[-1]
+            results[key] = result[0]
+        else:
+            logger.warning(f"Timeout or no data for topic {topic}, skipping")
 
     return results
 
