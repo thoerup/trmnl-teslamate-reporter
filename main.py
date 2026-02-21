@@ -7,21 +7,18 @@ import paho.mqtt.subscribe as subscribe
 from zoneinfo import ZoneInfo      
 from datetime import datetime  
 
-# Set up logging
 logging.basicConfig(
     level=logging.INFO,
     format="%(asctime)s - %(name)s - %(levelname)s - %(message)s"
 )
 logger = logging.getLogger("trmnl-teslamate-reporter")
 
-# Load dev environment variables if available
 try:
     from dotenv import load_dotenv
     load_dotenv()
 except ImportError:
     pass
 
-# Get configuration from environment variables
 FETCH_FREQUENCY = int(os.environ.get("FETCH_FREQUENCY", "15"))
 MQTT_BROKER = os.environ.get("MQTT_BROKER", "mosquitto")
 MQTT_PORT = int(os.environ.get("MQTT_PORT", "1883"))
@@ -71,8 +68,8 @@ def fetch_data_mqtt():
             results[key] = result[0]
         else:
             logger.warning(f"Timeout or no data for topic {topic}, skipping")
-            
-if "since" in results:
+
+    if "since" in results:
         try:
             utc_time = datetime.fromisoformat(results["since"].replace("Z", "+00:00"))
             local_time = utc_time.astimezone(ZoneInfo(os.environ.get("TZ", "UTC")))
