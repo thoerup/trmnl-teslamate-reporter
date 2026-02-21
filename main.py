@@ -42,7 +42,8 @@ def fetch_data_mqtt():
         f"teslamate/cars/{CAR_ID}/charger_voltage",
         f"teslamate/cars/{CAR_ID}/inside_temp",
         f"teslamate/cars/{CAR_ID}/outside_temp",
-        f"teslamate/cars/{CAR_ID}/climate_on",
+        f"teslamate/cars/{CAR_ID}/is_climate_on",
+        f"teslamate/cars/{CAR_ID}/is_preconditioning",
     ]
     auth = None
     if MQTT_USER and MQTT_PASSWORD:
