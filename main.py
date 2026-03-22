@@ -269,7 +269,6 @@ def post_to_terminus(data):
         logger.info("Successfully posted Tesla screen to Terminus")
     else:
         logger.error(f"Terminus screen post failed: {response.status_code} {response.text}")
-```
 
 def fetch_data_mqtt():
     results = {}
