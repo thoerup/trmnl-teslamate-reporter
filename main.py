@@ -87,7 +87,6 @@ TERMINUS_TEMPLATE = """
 </div>
 """
 
-
 def terminus_login():
     global _terminus_access_token, _terminus_refresh_token, _terminus_token_time
     try:
