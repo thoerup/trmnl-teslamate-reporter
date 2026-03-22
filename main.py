@@ -56,7 +56,7 @@ TERMINUS_TEMPLATE = """
     gap: 8px;
     flex: 1;
   }}
-  .cell {{ display: flex; flex-direction: column; }}
+  .cell {{ display: flex; flex-direction: column; align-items: center; text-align: center; }}
   .big {{ font-size: 1.6rem; font-weight: 700; line-height: 1; }}
   .lbl {{
     font-size: 0.55rem;
