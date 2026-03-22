@@ -174,30 +174,45 @@ def post_to_terminus(data):
         return
 
     html = render_html(data)
+    headers = {
+        "Authorization": f"Bearer {_terminus_access_token}",
+        "Content-Type": "application/json"
+    }
+    screen_payload = {
+        "screen": {
+            "model_id": TERMINUS_MODEL_ID,
+            "label": "Tesla",
+            "name": "tesla",
+            "content": html
+        }
+    }
 
-    try:
-        response = requests.post(
-            f"{TERMINUS_URL}/api/screens",
-            json={
-                "screen": {
-                    "model_id": TERMINUS_MODEL_ID,
-                    "label": "Tesla",
-                    "name": "tesla",
-                    "content": html
-                }
-            },
-            headers={
-                "Authorization": f"Bearer {_terminus_access_token}",
-                "Content-Type": "application/json"
-            }
-        )
-        if response.status_code == 200:
-            logger.info("Successfully posted Tesla screen to Terminus")
-        else:
-            logger.error(f"Terminus screen post failed: {response.status_code} {response.text}")
-    except Exception as e:
-        logger.error(f"Error posting to Terminus: {e}")
+    # Try POST first, fall back to PATCH if screen already exists
+    response = requests.post(
+        f"{TERMINUS_URL}/api/screens",
+        json=screen_payload,
+        headers=headers
+    )
 
+    if response.status_code == 422 and "Screen exists" in response.text:
+        # Find the screen ID and PATCH instead
+        screens = requests.get(f"{TERMINUS_URL}/api/screens", headers=headers)
+        if screens.status_code == 200:
+            screen_id = next(
+                (s["id"] for s in screens.json().get("data", []) if s["name"] == "tesla"),
+                None
+            )
+            if screen_id:
+                response = requests.patch(
+                    f"{TERMINUS_URL}/api/screens/{screen_id}",
+                    json=screen_payload,
+                    headers=headers
+                )
+
+    if response.status_code in (200, 201):
+        logger.info("Successfully posted Tesla screen to Terminus")
+    else:
+        logger.error(f"Terminus screen post failed: {response.status_code} {response.text}")
 
 def fetch_data_mqtt():
     results = {}
