@@ -224,6 +224,9 @@ def render_html(data):
     )
 
 
+Here's the corrected `post_to_terminus()` function:
+
+```python
 def post_to_terminus(data):
     if not terminus_get_token():
         logger.error("Could not get Terminus token, skipping")
@@ -234,15 +237,14 @@ def post_to_terminus(data):
         "Authorization": f"Bearer {_terminus_access_token}",
         "Content-Type": "application/json"
     }
-screen_payload = {
-    "screen": {
-        "model_id": TERMINUS_MODEL_ID,
-        "label": "Tesla",
-        "name": "tesla",
-        "content": html,
-        "dimensions": "400x240"
-    }
-}
+    screen_payload = {
+        "screen": {
+            "model_id": TERMINUS_MODEL_ID,
+            "label": "Tesla",
+            "name": "tesla",
+            "content": html,
+            "dimensions": "400x240"
+        }
     }
 
     # Try POST first, fall back to PATCH if screen already exists
@@ -271,6 +273,7 @@ screen_payload = {
         logger.info("Successfully posted Tesla screen to Terminus")
     else:
         logger.error(f"Terminus screen post failed: {response.status_code} {response.text}")
+```
 
 def fetch_data_mqtt():
     results = {}
