@@ -223,10 +223,6 @@ def render_html(data):
         display_name=data.get("display_name", "Tesla"),
     )
 
-
-Here's the corrected `post_to_terminus()` function:
-
-```python
 def post_to_terminus(data):
     if not terminus_get_token():
         logger.error("Could not get Terminus token, skipping")
