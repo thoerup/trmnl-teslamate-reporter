@@ -39,7 +39,7 @@ _terminus_token_time = None
 
 TERMINUS_TEMPLATE = """
 <style>
-  * {{ margin: 0; padding: 0; box-sizing: border-box; }}
+  * {{ margin: 0; padding: 0; box-sizing: border-box; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Helvetica, Arial, sans-serif; }}
   body {{ width: 400px; height: 240px; overflow: hidden; }}
   .card {{
     width: 400px;
@@ -99,12 +99,15 @@ TERMINUS_TEMPLATE = """
     align-items: center;
     padding: 0 12px;
     gap: 8px;
+    width: 100%;
   }}
-  .title-bar .title {{ font-weight: 700; font-size: 0.9rem; }}
+  .title-bar svg {{ vertical-align: middle; }}
+  .title-bar .title {{ font-weight: 400; font-size: 0.9rem; }}
   .title-bar .instance {{
     margin-left: auto;
     font-size: 0.9rem;
-    color: #444;
+    color: #000;
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Helvetica, Arial, sans-serif;
   }}
 </style>
 <div class="card">
